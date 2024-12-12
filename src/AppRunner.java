@@ -3,6 +3,7 @@ import model.*;
 import util.UniversalArray;
 import util.UniversalArrayImpl;
 
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class AppRunner {
@@ -26,11 +27,39 @@ public class AppRunner {
     }
 
     public static void run() {
-        AppRunner app = new AppRunner();
-        while (!isExit) {
-            app.startSimulation();
-        }
+//        AppRunner app = new AppRunner();
+//        while (!isExit) {
+//            app.startSimulation();
+//        }
+        askUser();
     }
+    protected static void askUser(){
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter the payment method: ");
+        String method = scanner.nextLine();
+        if(method.equalsIgnoreCase("cash")){
+            CashAcceptor cash = new CashAcceptor(0);
+        }
+        else if(method.equalsIgnoreCase("coin")){
+            AppRunner app = new AppRunner();
+            while (!isExit) {
+                app.startSimulation();
+            }
+        }
+        else if(method.equalsIgnoreCase("card")){
+            System.out.println("enter your card number: ");
+            int cardNumber;
+            try{
+                cardNumber = scanner.nextInt();
+            } catch (Exception e) {
+                throw new InputMismatchException("Please enter a valid card number");
+            }
+
+            CardAcceptor card = new CardAcceptor(cardNumber,1232);
+        }
+
+    }
+
 
     private void startSimulation() {
         print("В автомате доступны:");
@@ -103,4 +132,5 @@ public class AppRunner {
     private void print(String msg) {
         System.out.println(msg);
     }
+
 }
