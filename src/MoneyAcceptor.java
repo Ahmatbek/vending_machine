@@ -11,10 +11,11 @@ public class MoneyAcceptor {
     private final UniversalArray<Product> products = new UniversalArrayImpl<>();
 
     private final CoinAcceptor coinAcceptor;
-    private final CardAcceptor cardAcceptor;
+    private static CardAcceptor cardAcceptor;
 
     private static boolean isExit = false;
-    private   MoneyAcceptor(){
+
+    private MoneyAcceptor() {
         products.addAll(new Product[]{
                 new Water(ActionLetter.B, 20),
                 new CocaCola(ActionLetter.C, 50),
@@ -38,7 +39,21 @@ public class MoneyAcceptor {
                     System.out.println("Enter payment method (card or coin): ");
                     Scanner scanner = new Scanner(System.in);
                     method = scanner.nextLine();
-                    if (method.equals("card") || method.equals("coin")) {
+                    if (method.equals("coin")) {
+                        break;
+                    } else if (method.equals("card")) {
+                        while (true) {
+                            System.out.println("Enter card number: ");
+                            String cardNumber = scanner.nextLine();
+                            System.out.println("Enter password: ");
+                            String password = scanner.nextLine();
+                            if (cardAcceptor.checkInfo(cardNumber, password)) {
+                                System.out.println("You successfully enrolled the card");
+                                break;
+                            } else {
+                                System.out.println("Provide valid card number and password");
+                            }
+                        }
                         break;
                     }
                 } catch (Exception e) {
@@ -47,6 +62,7 @@ public class MoneyAcceptor {
                 }
             }
             app.startSimulation(method);
+
         }
     }
 
@@ -54,31 +70,29 @@ public class MoneyAcceptor {
         print("В автомате доступны:");
         showProducts(products);
         String payment = "";
-        if(method.equals("coin")) {
-            payment= method;
-            print("Монет на сумму: " + coinAcceptor.getAmount());
-        }
-        else if(method.equals("card")) {
+        if (method.equals("coin")) {
             payment = method;
-            print("The balance in the card: "+cardAcceptor.getAmount());
+            print("Монет на сумму: " + coinAcceptor.getAmount());
+        } else if (method.equals("card")) {
+            payment = method;
+            print("The balance in the card: " + cardAcceptor.getAmount());
         }
 
 
         UniversalArray<Product> allowProducts = new UniversalArrayImpl<>();
         allowProducts.addAll(getAllowedProducts(method).toArray());
-        chooseAction(allowProducts,payment);
+        chooseAction(allowProducts, payment);
 
     }
 
     private UniversalArray<Product> getAllowedProducts(String method) {
         UniversalArray<Product> allowProducts = new UniversalArrayImpl<>();
         for (int i = 0; i < products.size(); i++) {
-            if(method.equals("coin")) {
+            if (method.equals("coin")) {
                 if (coinAcceptor.getAmount() >= products.get(i).getPrice()) {
                     allowProducts.add(products.get(i));
                 }
-            }
-            else if(method.equals("card")) {
+            } else if (method.equals("card")) {
                 if (cardAcceptor.getAmount() >= products.get(i).getPrice()) {
                     allowProducts.add(products.get(i));
                 }
@@ -91,13 +105,18 @@ public class MoneyAcceptor {
 
         if (method.equals("coin")) {
             print(" a - add to balance");
-
         }
         showActions(products);
         print(" h - Выйти");
         String action = fromConsole().substring(0, 1);
         if (method.equals("coin")) {
-            coinAcceptor.coinAdding(action,coinAcceptor);
+            coinAcceptor.coinAdding(action);
+            if (coinAcceptor.purchasing(action, products)) {
+                System.out.println("Balance "+coinAcceptor.getAmount());
+            }else {
+                chooseAction(products, method);
+            }
+
         }
 
 
@@ -105,21 +124,14 @@ public class MoneyAcceptor {
             isExit = true;
             return;
         }
-        if(method.equals("coin")) {
-            if(!coinAcceptor.purchasing(action,coinAcceptor, products)) {
-                chooseAction(products,method);
+        if (method.equals("card")) {
+            if (cardAcceptor.purchasing(action, products)) {
+                System.out.println("Balance "+cardAcceptor.getAmount());
+            }
+            else {
+                chooseAction(products, method);
             }
         }
-       if (method.equals("card")) {
-           if(!cardAcceptor.purchasing(action,cardAcceptor,products)) {
-               showActions(products);
-           }
-       }
-       else {
-           chooseAction(products,method);
-       }
-
-
 
     }
 
